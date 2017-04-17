@@ -1,0 +1,12 @@
+country_parser -> L,M,N.json, make dir structure
+airport_freq_parser -> SC,SC2.json
+airport_dest/arrv_parser -> MDF_dest/arrv.json, mdf_dest/arrv.json for each country
+merger -> flights.json for each country
+geocoder -> citysave.json
+city -> cluster.json
+population1,2,3,4 -> pop1e,2e,3e,4e,pop1,2,3,4.json
+population -> pop,pop_cities/countries,countries2.json
+population_clusterer ->
+tourism ->
+formatter -> f,g.json for each country
+html -> 
