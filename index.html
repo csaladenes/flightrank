@@ -121,7 +121,7 @@
 								        			load(country);
 								        		},
 								        		"value"  :ifs,
-								        		"label" : "Depth: 1",
+								        		"label" : "Depth:",
 								        		"type" : "drop"
 								        	},
 								        	{"method" : function(v){
@@ -132,7 +132,7 @@
 								        		load(country);
 								        	},
 								        	"value"  :ifs,
-								        	"label" : "2",
+								        	"label" : " ",
 								        	"type" : "drop"
 								        },
 								        {"method" : function(v){
@@ -143,7 +143,7 @@
 								        	load(country);
 								        },
 								        "value"  :ifs,
-								        "label" : "3",
+								        "label" : " ",
 								        "type" : "drop"
 								    },
 								    {"method" : function(v){
@@ -154,7 +154,7 @@
 								    	load(country);
 								    },
 								    "value"  :ifs,
-								    "label" : "4",
+								    "label" : " ",
 								    "type" : "drop"
 								}
 								]
@@ -202,7 +202,7 @@
 
 			        		function load(file){
 			        			ids=["type"].concat(ibs,["ap"]);
-			        			d3.json("countries/"+file+"/json/e.json", function(error, data) {
+			        			d3.json("countries/"+file+"/json/g.json", function(error, data) {
 			        				visualization
 			        				.data({"value":data,"opacity":0.8})
 			        				.id(ids)
