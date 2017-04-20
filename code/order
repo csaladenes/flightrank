@@ -19,3 +19,6 @@ formatter -> unicities,citycoords.json; f,g.json for each country
 !fir rank order on  the last ids level
 !unifrom color scale
 !breadcrums
+
+!fix erros: identify duplicates, doublel check coutnries
+!NZ entire country error
