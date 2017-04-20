@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @font-face {
+        			font-family: "MyFont";
+        			src: url('font/Righteous-Regular.ttf') format("truetype");
+        		}
+    </style>
+</head>
+
+<body>
+    <script src="js/d3.js"></script>
+    <script src="js/d3plus.js"></script>
+
+    <div id="viz"></div>
+
+    <script>
+        var font={"family":"MyFont","size":15,"align":"center","secondary":{"family":"MyFont"}};
+        		var dep=1;
+        		var ibs=["country","to","from","al"];
+        		var ifs=[{"Country":"country"},{"City":"to"},{"Origin":"from"},{"Airline":"al"}];
+        		var country="ro";
+        		var country2="countries/"+country+"/json/g.json";  
+        		var visualization = d3plus.viz()
+        		.container("#viz")
+        		.type("bubbles")
+        		.size({"value":"weekly flights","axisbg":"red"})
+        		.font(font)
+        		.background('none')
+        		.legend(false)
+        
+        		d3.json('json/iso2c.json',function(iso2c){
+        			visualization  
+        			.ui({"font":{"size":12},
+        				 "value":[
+        							{"method" : function(v){
+			        					country=v;
+			        					country2="countries/"+v+"/json/g.json";
+			        					load(country2);
+			        					},
+				        			"value"  :iso2c,
+				        			"label" : " ",
+				        			"type" : "drop"
+				        			},
+				        			{"method" : function(v){
+				        				dep=v;
+				        				load(country2);
+				        				},
+				        			"value"  :[{"Normal":1}, {"Detailed":2} ],
+				        			"label" : " "
+					        		},
+					        		{"method" : function(v){
+					        			var k=ibs.indexOf(v);
+					        			var c=ibs[0];
+					        			ibs[0]=v;
+					        			ibs[k]=c;
+					        			load(country2);
+					        			},
+					        		"value"  :ifs,
+					        		"label" : " ",
+					        		"type" : "drop"
+						        	},
+						        	{"method" : function(v){
+						        		var k=ibs.indexOf(v);
+						        		var c=ibs[1];
+						        		ibs[1]=v;
+						        		ibs[k]=c;
+						        		load(country2);
+						        		},
+						        	"value"  :ifs,
+						        	"label" : " ",
+						        	"type" : "drop"
+						        	},
+							        {"method" : function(v){
+							        	var k=ibs.indexOf(v);
+							        	var c=ibs[2];
+							        	ibs[2]=v;
+							        	ibs[k]=c;
+							        	load(country2);
+							        	},
+							        "value"  :ifs,
+							        "label" : " ",
+							        "type" : "drop"
+							        }
+							    ]
+					})
+        		})
+        
+        		function load(file){
+        			d3.json(file, function(error, data) {
+        				function viz(ids){
+        					visualization
+        					.data(data)
+        					.id(ids)
+        					.depth(dep)
+        					.color(function(d){
+        						return d[ids[d.d3plus.depth]];
+        					})
+        					.draw()
+        				}
+        
+        				viz(["type"].concat(ibs,["ap"]));
+
+         			})
+        		}
+        
+        		load(country2);
+        		
+    </script>
+</body>

@@ -1,12 +1,21 @@
-country_parser -> L,M,N.json, make dir structure
+country_parser -> L,M,N,I3.json; universal/cnc.csv; make dir structure
 airport_freq_parser -> SC,SC2.json
 airport_dest/arrv_parser -> MDF_dest/arrv.json, mdf_dest/arrv.json for each country
-merger -> flights.json for each country
-geocoder -> citysave.json
+merger -> flights.json for each country, combine for WD
 city -> cluster.json
-population1,2,3,4 -> pop1e,2e,3e,4e,pop1,2,3,4.json
-population -> pop,pop_cities/countries,countries2.json
-population_clusterer ->
-tourism ->
-formatter -> f,g.json for each country
-html -> 
+geocoder -> citysave.json (some coordinate errors)
+geocoder2 -> citysave2,3,4.json (using pygeocoder, overwrite citysave values, where found)
+-opt-population1,2,3,4 -> pop1e,2e,3e,4e,pop1,2,3,4.json
+-opt-population -> pop,pop_cities/countries,countries2.json
+-opt-population_clusterer ->
+-opt-tourism ->
+formatter -> unicities,citycoords.json; f,g.json for each country
+-opt-html -> 
+
+!multiarirpor,fix distance,pop,filter,doubwel axis trend
+!fix errors - WIC, from=to (London)
+!fix Wd double pairs
+!fix domestic double counting -> implement javascipt filter for to/from pair and their duals
+!fir rank order on  the last ids level
+!unifrom color scale
+!breadcrums
