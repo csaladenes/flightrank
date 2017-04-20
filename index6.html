@@ -68,6 +68,7 @@
         		//.format(function(d){return d})
         		//.color("Distance")
         		.aggs({"Distance":"mean"})
+        		.aggs({"Population":"mean"})
         		.legend(false)
         		var visualization2 = d3plus.viz()
         		.container("#bottom-right")
@@ -83,6 +84,7 @@
         		d3.json('json/citycoords.json',function(citycoords){
         			d3.json('json/pretty.json',function(pretty){
         				d3.json('json/iso2c.json',function(iso2c){
+        				d3.json('json/pop_cities.json',function(pop){
         					var iso=[];
         					iso2c.forEach(function(d,i){Object.keys(d).forEach(function(e){iso[iso2c[i][e]]=e})})
 		        			pretty["qlights"]={"name":"Flights from "+iso[country],"iso2":"."}; //manual display fix
@@ -190,11 +192,11 @@
 		        				"label" : "Color:"
 		        			},{"method" : function(v){
 		        					visualization2
-		        					.y(function(d){return (v==2)?order3[d[visualization2.id()]]:d[ykey]}) 
+		        					.y(function(d){return (v==1)?order3[d[visualization2.id()]]:d[ykey]}) 
 		        					.draw()
 		        				},
-		        				"value"  :[{"No":1}, {"log":2} ],
-		        				"label" : "Reg.:"
+		        				"value"  :[{"y":1}, {"lr":2} ],
+		        				"label" : "reg:"
 		        			}
 		        			]
 		        		})
@@ -256,6 +258,14 @@
 			         							citycoords[toz][1],citycoords[d["from"]][0],citycoords[d["from"]][1])
 			         					d["Distance"]=parseInt(h);
 			         				})
+			         				data.forEach(function(d){
+			         					var toz=d["to"].slice(0,d["to"].indexOf("_to_"));
+			         					if (Object.keys(pop).indexOf(toz)>-1) 
+			         						if (pop[toz]["pop"]<100000000)
+			         							d["Population"]=pop[toz]["pop"]
+			         						else d["Population"]=100000; 
+			         					else d["Population"]=100000; 
+			         				})
 			         				//ordering
 			         				order2={}
 			         				order3={}
@@ -308,13 +318,12 @@
 			         				.depth(dep)
 			         				.y({"scale":"log","label":"Flight frequency [flights / week]"}) 
 			         				.y(ykey) 
-			         				.x(function(d){return order2[d[ids[k]]]})
+			         				.x("Population")
 										        //.order(function(d){return order2[d[ids[k]]]}) //first on the bottom
 								        .order(function(d){return 1/Math.pow(d.d3plus.total,pow)})//biggest on the bottom
-								        .tooltip({"sub":function(d){return (ids[d.d3plus.depth]=='country')?pretty[d["country"]]['name']:''}})
 								        .title({"value":'Flights from '+iso[country],"font":{"size":15}})
-								        .x({"label":"Rank"})
-								        .draw(undefined, function(){ 
+								        .x({"scale":"linear","label":"Population [people]"}) 
+			         					.draw(undefined, function(){ 
 								        	k=visualization2.depth();
 								        	ordered();
 								        	var lis=[];
@@ -354,7 +363,7 @@
 load(country);
 
 })
-
+})
 })
 })
 

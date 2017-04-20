@@ -38,6 +38,7 @@
 	<script src="js/d3.js"></script>
 	<script src="js/d3plus.js"></script>
 	<script src="js/haversine.js"></script>
+	<script src="js/regression.min.js"></script>
 
 	<div id="top-left" class="big pull-left top"></div>
 	<div id="top-right" class="big pull-right top" ></div>
@@ -45,18 +46,24 @@
 	<div id="bottom-right" class="big pull-right bottom"></div>
 
 	<script>
-		var font={"family":"MyFont","size":15,"align":"center","secondary":{"family":"MyFont","size":11}};
-		var dep=1;
-		var ibs=["country","to","from","al","fp"];
-		var ifs=[{"Country":"country"},{"City":"to"},{"Origin":"from"},{"Airline":"al"},{"Airport":"fp"}];
-		var country="hu";
-		var ykey="Flights";
-		var visualization = d3plus.viz()
-		.container("#bottom-left")
-		.type("bubbles")
-		.size(ykey)
-		.font(font)
-		.margin("10px -20px 10px 20px")
+			var font={"family":"MyFont","size":15,"align":"center","secondary":{"family":"MyFont","size":11}};
+			var dep=1;
+			var ibs=["country","to","from","al","fp"];
+			var ids=["type"].concat(ibs,["ap"]);
+			var ifs=[{"Country":"country"},{"City":"to"},{"Origin":"from"},{"Airline":"al"},{"Airport":"fp"}];
+			var country="hu";
+			var ykey="Flights";
+			var order2={}
+			var order3={}
+			var mdata=[];
+			ids.forEach(function(d){mdata.push(0)});
+			var kprev=dep;
+			var visualization = d3plus.viz()
+			.container("#bottom-left")
+			.type("bubbles")
+			.size(ykey)
+			.font(font)
+			.margin("10px -20px 10px 20px")
         		//.background('none')
         		//.format(function(d){return d})
         		//.color("Distance")
@@ -181,13 +188,20 @@
 		        				},
 		        				"value"  :[{"Rainbow":1}, {"Distance":2} ],
 		        				"label" : "Color:"
+		        			},{"method" : function(v){
+		        					visualization2
+		        					.y(function(d){return (v==2)?order3[d[visualization2.id()]]:d[ykey]}) 
+		        					.draw()
+		        				},
+		        				"value"  :[{"No":1}, {"log":2} ],
+		        				"label" : "Reg.:"
 		        			}
 		        			]
 		        		})
 			        		//})
 
 			        		function load(file){
-			        			var ids=["type"].concat(ibs,["ap"]);
+			        			ids=["type"].concat(ibs,["ap"]);
 			        			d3.json("countries/"+file+"/json/e.json", function(error, data) {
 			        				visualization
 			        				.data({"value":data,"opacity":0.8})
@@ -243,41 +257,59 @@
 			         					d["Distance"]=parseInt(h);
 			         				})
 			         				//ordering
-									var order2={}
-									var mdata=[];
-									ids.forEach(function(d){mdata.push(0)});
-									var kprev=dep;
-									function ordered(){
-										if (k>dep) {
-											ndata=(k<kprev)
-												?mdata[k].filter(function(d){return d[ids[k-1]]==current[k-2]})
-												:ndata.filter(function(d){return d[ids[k-1]]==current[k-2]})
-										}
-										else ndata=data;
-										kprev=k;
-										mdata[k]=ndata;
-										var order=[];
-										ndata.forEach(function(d){
-											if (Object.keys(order).indexOf(d[ids[k]])<0) order[d[ids[k]]]=0;
-											order[d[ids[k]]]=order[d[ids[k]]]+d[ykey];
-								      		//console.log(order,d[ids[k]],ids,k)
+			         				order2={}
+			         				order3={}
+			         				mdata=[];
+			         				ids.forEach(function(d){mdata.push(0)});
+			         				kprev=dep;
+			         				function ordered(){
+			         					if (k>dep) {
+			         						ndata=(k<kprev)
+			         						?mdata[k].filter(function(d){return d[ids[k-1]]==current[k-2]})
+			         						:ndata.filter(function(d){return d[ids[k-1]]==current[k-2]})
+			         					}
+			         					else ndata=data;
+			         					kprev=k;
+			         					mdata[k]=ndata;
+			         					var order=[];
+			         					ndata.forEach(function(d){
+			         						if (Object.keys(order).indexOf(d[ids[k]])<0) order[d[ids[k]]]=0;
+			         						order[d[ids[k]]]=order[d[ids[k]]]+d[ykey];
 								      	})
-										order = Object.keys(order).sort(function(a,b){return order[b]-order[a]})
-										order2={};
-										for (var i=0;i<order.length;i++) order2[order[i]]=i+1; 							      	
-									}
+			         					gorder=order;
+			         					order = Object.keys(order).sort(function(a,b){return order[b]-order[a]})
+			         					order2={};
+			         					order3={};
+			         					for (var i=0;i<order.length;i++) order2[order[i]]=i+1; 	
 
-								var k=dep;
-								ordered();
+			         					var xy=[];
+			         					for (i=0;i<order.length;i++){
+			         						w=Object.keys(gorder)[i]
+			         						xy.push([order2[w],gorder[w]])
+			         					}
 
-								visualization2
-								.data({"value":data,"opacity":0.8})
-								.id(ids) 
-								.id({"solo": {"callback": function(id) {current=id;}}})
-								.depth(dep)
-								.y({"value":ykey,"scale":"log","label":"Flight frequency [flights / week]"}) 
-								.x(function(d){return order2[d[ids[k]]]})
-								        //.order(function(d){return order2[d[ids[k]]]}) //first on the bottom
+			         					var lr = regression('exponential', xy)
+			         					for (i=0;i<order.length;i++){
+			         						w=Object.keys(gorder)[i]
+			         						order3[w]=lr.points[i][1]
+			         					}
+										
+										visualization2.title({"sub":{"value":lr.string+', R2='+lr.r2.toPrecision(2),"font":{"size":13}}})
+
+			         				}
+
+			         				var k=dep;
+			         				ordered();
+
+			         				visualization2
+			         				.data({"value":ndata,"opacity":0.8})
+			         				.id(ids) 
+			         				.id({"solo": {"callback": function(id) {current=id;}}})
+			         				.depth(dep)
+			         				.y({"scale":"log","label":"Flight frequency [flights / week]"}) 
+			         				.y(ykey) 
+			         				.x(function(d){return order2[d[ids[k]]]})
+										        //.order(function(d){return order2[d[ids[k]]]}) //first on the bottom
 								        .order(function(d){return 1/Math.pow(d.d3plus.total,pow)})//biggest on the bottom
 								        .tooltip({"sub":function(d){return (ids[d.d3plus.depth]=='country')?pretty[d["country"]]['name']:''}})
 								        .title({"value":'Flights from '+iso[country],"font":{"size":15}})
@@ -312,9 +344,9 @@
 								        				}
 								        		}
 								        		else lfrom=' from '+iso[country]
-							        		if (lto.indexOf("_to_") > -1) lto=lto.slice(0,lto.indexOf("_to_"));
-							        		visualization2.title(lall+lfrom+lto+lwith)
-							        	});
+								        			if (lto.indexOf("_to_") > -1) lto=lto.slice(0,lto.indexOf("_to_"));
+								        		visualization2.title(lall+lfrom+lto+lwith)
+								        	});
 								        
 								    })
 }
