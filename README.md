@@ -4,6 +4,8 @@
   
 This is an interactive visualization interface (_exploratorium_) for all the flights in the world, clustered by countries, cities, airlines and airports. We provide a bubbles visualization and a scatter-plot in a side-by-side layout for easy exploration of the data.
   
+__This is an interactive global visualization and exploration interface (_exploratorium_)__.  
+    
 - Data source was http://airportia.com
 - Flights for the first 2 weeks of April 2017 were scraped.
 - Data mining, processing and normalization done in `python` and `pandas`.
