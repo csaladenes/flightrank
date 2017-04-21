@@ -1,6 +1,6 @@
 [<img src="favicon.ico" alt="favicon" height=24 width=24 />  FlightRank](http://aviation.csaladen.es/)
 ======
-[![FlightRank](snapshot.jpg "FlightRank")](http://aviation.csaladen.es/)  
+[![FlightRank](snapshot.png "FlightRank")](http://aviation.csaladen.es/)  
   
 This is an interactive visualization interface (_exploratorium_) for all the flgihts in the world, clustered by countries, cities, airlines and airports. We provide a bubbles visualization and a scatter-plot in a side-by-side layout for easy exploration of the data.
   
