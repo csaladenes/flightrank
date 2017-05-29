@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta charset="utf-8">
+	<style>
+		@font-face {
+			font-family: "MyFont";
+			src: url('font/Righteous-Regular.ttf') format("truetype");
+		}
+		html, body {
+			padding: 0;
+			margin: 0;
+			height: 100%;
+			min-height: 100%;
+			overflow: hidden;
+		}
+		div.top {
+			height: 5%;
+			margin: 0px -1px;
+		}
+		div.bottom {
+			height: 90%;
+			margin: 0px -1px;
+		}
+		.pull-left {
+			float: left;
+			width: 45%;
+		}
+		.pull-right {
+			float: right;
+			width: 55%;
+		}
+	</style>
+</head>
+
+<body>
+	<script src="js/d3.js"></script>
+	<script src="js/d3plus.js"></script>
+	<script src="js/haversine.js"></script>
+	<script src="js/regression.min.js"></script>
+
+	<div id="top-left" class="big pull-left top"></div>
+	<div id="top-right" class="big pull-right top" ></div>
+	<div id="bottom-left" class="big pull-left bottom"></div>
+	<div id="bottom-right" class="big pull-right bottom"></div>
+
+	<script>
+			var font={"family":"MyFont","size":15,"align":"center","secondary":{"family":"MyFont","size":11}};
+			var dep=1;
+			var ibs=["country","to","from","al","fp"];
+			var ids=["type"].concat(ibs,["ap"]);
+			var ifs=[{"Country":"country"},{"City":"to"},{"Origin":"from"},{"Airline":"al"},{"Airport":"fp"}];
+			var country="mg";
+			var ykey="Flights";
+			var order2={}
+			var order3={}
+			var mdata=[];
+			ids.forEach(function(d){mdata.push(0)});
+			var kprev=dep;
+			var visualization = d3plus.viz()
+			.container("#bottom-left")
+			.type("bubbles")
+			.size(ykey)
+			.font(font)
+			.margin("10px -20px 10px 20px")
+        		//.background('none')
+        		//.format(function(d){return d})
+        		//.color("Distance")
+        		.aggs({"Distance":"mean"})
+        		.legend(false)
+        		var visualization2 = d3plus.viz()
+        		.container("#bottom-right")
+        		.type("scatter")
+        		.font(font)
+        		.margin("10px 40px 10px 40px")
+        		//.background('none')
+        		//.format(function(d){return d})
+        		//.color("Distance")
+        		.aggs({"Distance":"mean"})
+        		//.legend(false)
+
+        		d3.json('json/citycoords.json',function(citycoords){
+        			d3.json('json/pretty.json',function(pretty){
+        				d3.json('json/iso2c.json',function(iso2c){
+        					var iso=[];
+        					iso2c.forEach(function(d,i){Object.keys(d).forEach(function(e){iso[iso2c[i][e]]=e})})
+		        			pretty["qlights"]={"name":"Flights from "+iso[country],"iso2":"."}; //manual display fix
+		        			pretty["Flights"]={"name":"Flights / week","iso2":"."}; //manual display fix
+		        			//d3.json('json/pretty.json',function(pretty){
+		        				visualization  
+		        				.format({
+		        					"text": function(text, params) {
+		        						if (Object.keys(pretty).indexOf(text)>-1) return pretty[text]['name'];
+		        						else if (text.indexOf("_to_") > -1) return text.slice(0,text.indexOf("_to_"));
+		        						else return text}
+		        					})
+		        				.ui({"font":{"size":12},
+		        					"value":[
+		        					{"method" : function(v){
+		        						country=v;
+		        						load(country);
+		        					},
+		        					"value"  :iso2c,
+		        					"label" : " ",
+		        					"width" : 120,
+		        					"type" : "drop"
+		        				},
+							        			//{"method" : function(v){
+							        			//	dep=v;
+							        			//	load(country);
+							        			//	},
+							        			//"value"  :[{"Normal":1}, {"Detailed":2} ],
+							        			//"label" : " "
+								        		//},
+								        		{"method" : function(v){
+								        			var k=ibs.indexOf(v);
+								        			var c=ibs[0];
+								        			ibs[0]=v;
+								        			ibs[k]=c;
+								        			load(country);
+								        		},
+								        		"value"  :ifs,
+								        		"label" : "Depth:",
+								        		"type" : "drop"
+								        	},
+								        	{"method" : function(v){
+								        		var k=ibs.indexOf(v);
+								        		var c=ibs[1];
+								        		ibs[1]=v;
+								        		ibs[k]=c;
+								        		load(country);
+								        	},
+								        	"value"  :ifs,
+								        	"label" : " ",
+								        	"type" : "drop"
+								        },
+								        {"method" : function(v){
+								        	var k=ibs.indexOf(v);
+								        	var c=ibs[2];
+								        	ibs[2]=v;
+								        	ibs[k]=c;
+								        	load(country);
+								        },
+								        "value"  :ifs,
+								        "label" : " ",
+								        "type" : "drop"
+								    },
+								    {"method" : function(v){
+								    	var k=ibs.indexOf(v);
+								    	var c=ibs[3];
+								    	ibs[3]=v;
+								    	ibs[k]=c;
+								    	load(country);
+								    },
+								    "value"  :ifs,
+								    "label" : " ",
+								    "type" : "drop"
+								}
+								]
+							})
+
+		        				visualization2 
+		        				.format({
+		        					"text": function(text, params) {
+		        						if (Object.keys(pretty).indexOf(text)>-1) return pretty[text]['iso2'];
+		        						else if (text.indexOf("_to_") > -1) return text.slice(0,text.indexOf("_to_"));
+		        						else return text}
+		        					})
+		        				.ui({"font":{"size":12},
+		        					"value":[
+		        					{"method" : function(v){
+		        						visualization2
+		        						.size(function(d){return (v==1)?1:(v==2)?d.d3plus.total:d[ykey]})
+		        						.size({"scale":d3.scale.log()})
+		        						.draw()
+		        					},
+		        					"value"  :[{"Uniform":1}, {"Route options":2} , {"Flight fequency":3} ],
+		        					"label" : "Bubble size:"
+		        				},
+		        				{"method" : function(v){
+		        					visualization
+		        					.color((v==1)?false:"Distance")
+		        					.draw()
+		        					visualization2
+		        					.color((v==1)?false:"Distance")
+		        					.draw()
+		        				},
+		        				"value"  :[{"Rainbow":1}, {"Distance":2} ],
+		        				"label" : "Color:"
+		        			},{"method" : function(v){
+		        					visualization2
+		        					.y(function(d){return (v==2)?order3[d[visualization2.id()]]:d[ykey]}) 
+		        					.draw()
+		        				},
+		        				"value"  :[{"No":1}, {"log":2} ],
+		        				"label" : "Reg.:"
+		        			}
+		        			]
+		        		})
+			        		//})
+
+			        		function load(file){
+			        			ids=["type"].concat(ibs,["ap"]);
+			        			d3.json("countries/"+file+"/json/g.json", function(error, data) {
+			        				visualization
+			        				.data({"value":data,"opacity":0.8})
+			        				.id(ids)
+			        				.id({"solo": {"callback": function(id) {current=id;}}})
+			        				.depth(dep)
+			        				.tooltip({"sub":function(d){return (ids[d.d3plus.depth]=='country')?pretty[d["country"]]['iso2']:''}})
+			        					//.title({"value":'Flights from '+iso[country],"font":{"size":15}})
+			        					.draw(undefined, function(){ 
+			        						k=visualization.depth();
+			        						var lis=[];
+			        						var lwith="";
+			        						var lfrom="";
+			        						var lto="";
+			        						var lall="Flights";
+			        						for (i=1;i<k;i++) lis.push(ids[i])
+			        							if (lis.length>0) {
+			        								if (lis.indexOf('al')>-1)
+			        									lwith=' with '+current[lis.indexOf('al')]
+			        								if (lis.indexOf('to')>-1)
+			        									if (lis.indexOf('country')>-1)
+			        										lto=' to '+current[lis.indexOf('to')]+', '+current[lis.indexOf('country')]
+			        									else lto=' to '+current[lis.indexOf('to')]
+			        										else if (lis.indexOf('country')>-1)
+			        											lto=' to '+current[lis.indexOf('country')]
+			        										if (lis.indexOf('fp')>-1) {
+			        											if (lis.indexOf('from')>-1)
+			        												lfrom=' from '+current[lis.indexOf('fp')]+', '+current[lis.indexOf('from')]+', '+iso[country]
+			        											else lfrom=' from '+current[lis.indexOf('fp')]+', '+iso[country]
+			        										}
+			        									else {
+			        										if (lis.indexOf('from')>-1)
+			        											lfrom=' from '+current[lis.indexOf('from')]+', '+iso[country]
+			        										else lfrom=' from '+iso[country]
+			        									}
+			        							}
+			        							else lfrom=' from '+iso[country]
+							        			//visualization.title(lall+lfrom+lto+lwith)
+							        		if (lto.indexOf("_to_") > -1) lto=lto.slice(0,lto.indexOf("_to_"));
+							        		pretty["qlights"]["name"]=lall+lfrom+lto+lwith;
+							        	});
+
+			        					var pow=1;
+			        					var current=[];
+			         				//filter
+			         				data=data.filter(function(d){return d[ykey]>0});
+			         				//haversine distances
+			         				data.forEach(function(d){
+			         					var toz=d["to"].slice(0,d["to"].indexOf("_to_"));
+			         					if ((citycoords[toz])&&(citycoords[d["from"]]))
+			         						var h=distanceInKmBetweenEarthCoordinates(citycoords[toz][0],
+			         							citycoords[toz][1],citycoords[d["from"]][0],citycoords[d["from"]][1])
+			         					d["Distance"]=parseInt(h);
+			         				})
+			         				//ordering
+			         				order2={}
+			         				order3={}
+			         				mdata=[];
+			         				ids.forEach(function(d){mdata.push(0)});
+			         				kprev=dep;
+			         				function ordered(){
+			         					if (k>dep) {
+			         						ndata=(k<kprev)
+			         						?mdata[k].filter(function(d){return d[ids[k-1]]==current[k-2]})
+			         						:ndata.filter(function(d){return d[ids[k-1]]==current[k-2]})
+			         					}
+			         					else ndata=data;
+			         					kprev=k;
+			         					mdata[k]=ndata;
+			         					var order=[];
+			         					ndata.forEach(function(d){
+			         						if (Object.keys(order).indexOf(d[ids[k]])<0) order[d[ids[k]]]=0;
+			         						order[d[ids[k]]]=order[d[ids[k]]]+d[ykey];
+								      	})
+			         					gorder=order;
+			         					order = Object.keys(order).sort(function(a,b){return order[b]-order[a]})
+			         					order2={};
+			         					order3={};
+			         					for (var i=0;i<order.length;i++) order2[order[i]]=i+1; 	
+
+			         					var xy=[];
+			         					for (i=0;i<order.length;i++){
+			         						w=Object.keys(gorder)[i]
+			         						xy.push([order2[w],gorder[w]])
+			         					}
+
+			         					var lr = regression('exponential', xy)
+			         					for (i=0;i<order.length;i++){
+			         						w=Object.keys(gorder)[i]
+			         						order3[w]=lr.points[i][1]
+			         					}
+										
+										visualization2.title({"sub":{"value":lr.string+', R2='+lr.r2.toPrecision(2),"font":{"size":13}}})
+
+			         				}
+
+			         				var k=dep;
+			         				ordered();
+
+			         				visualization2
+			         				.data({"value":ndata,"opacity":0.8})
+			         				.id(ids) 
+			         				.id({"solo": {"callback": function(id) {current=id;}}})
+			         				.depth(dep)
+			         				.y({"scale":"log","label":"Flight frequency [flights / week]"}) 
+			         				.y(ykey) 
+			         				.x(function(d){return order2[d[ids[k]]]})
+										        //.order(function(d){return order2[d[ids[k]]]}) //first on the bottom
+								        .order(function(d){return 1/Math.pow(d.d3plus.total,pow)})//biggest on the bottom
+								        .tooltip({"sub":function(d){return (ids[d.d3plus.depth]=='country')?pretty[d["country"]]['name']:''}})
+								        .title({"value":'Flights from '+iso[country],"font":{"size":15}})
+								        .x({"label":"Rank"})
+								        .draw(undefined, function(){ 
+								        	k=visualization2.depth();
+								        	ordered();
+								        	var lis=[];
+								        	var lwith="";
+								        	var lfrom="";
+								        	var lto="";
+								        	var lall="Flights";
+								        	for (i=1;i<k;i++) lis.push(ids[i])
+								        		if (lis.length>0) {
+								        			if (lis.indexOf('al')>-1)
+								        				lwith=' with '+current[lis.indexOf('al')]
+								        			if (lis.indexOf('to')>-1)
+								        				if (lis.indexOf('country')>-1)
+								        					lto=' to '+current[lis.indexOf('to')]+', '+current[lis.indexOf('country')]
+								        				else lto=' to '+current[lis.indexOf('to')]
+								        					else if (lis.indexOf('country')>-1)
+								        						lto=' to '+current[lis.indexOf('country')]
+								        					if (lis.indexOf('fp')>-1) {
+								        						if (lis.indexOf('from')>-1)
+								        							lfrom=' from '+current[lis.indexOf('fp')]+', '+current[lis.indexOf('from')]+', '+iso[country]
+								        						else lfrom=' from '+current[lis.indexOf('fp')]+', '+iso[country]
+								        					}
+								        				else {
+								        					if (lis.indexOf('from')>-1)
+								        						lfrom=' from '+current[lis.indexOf('from')]+', '+iso[country]
+								        					else lfrom=' from '+iso[country]
+								        				}
+								        		}
+								        		else lfrom=' from '+iso[country]
+								        			if (lto.indexOf("_to_") > -1) lto=lto.slice(0,lto.indexOf("_to_"));
+								        		visualization2.title(lall+lfrom+lto+lwith)
+								        	});
+								        
+								    })
+}
+
+load(country);
+
+})
+
+})
+})
+
+</script>
+</body>
